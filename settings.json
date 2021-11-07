@@ -1,0 +1,6 @@
+{
+    "max_workers_number": 6,
+    "Open_ThreadPool": true,
+    "tocken": "",
+    "help": "输入 - 加上首字母\nh | help\t\t\t\t\t\t--- 显示说明\nq | quit\t\t\t\t\t\t--- 退出正在运作的程序\nc | cookie\t\t\t\t\t\t--- 检测本地的cookie凭证\nb | b + bookid\t\t\t\t\t\t--- 下载指定小说章节文本\nu | u + url\t\t\t\t\t\t--- 下载指定小说章节文本\nn | n + bookname\t\t\t\t\t--- 输入书名下载小说文本\nt | t + tagname\t\t\t\t\t\t--- 下载全站标签书籍信息"
+}
