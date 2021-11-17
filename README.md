@@ -1,5 +1,4 @@
-# novel_laomao
-
+# LaoMaoAppNovelDownloader
 ## 老猫小说APP爬虫
 
 ---
@@ -23,7 +22,6 @@
 
 <ul>
 
-<li>ase</li>
 
 <li>request</li>
 
@@ -31,15 +29,12 @@
 
 <li>EbookLib</li>
   
-<li>pyyaml</li>
-  
 <li>time</li>
 
 <li>sys</li>
 
 <li>rich</li>
-  
-<li>concurrent</li>
+
   
 </ul>
 
