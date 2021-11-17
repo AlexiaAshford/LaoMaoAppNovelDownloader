@@ -1,100 +1,66 @@
-import click
-from API import Settings
+import fire
+from instance import *
 from API import LaoMaoxsAPI
+from API import Settings
 
-Settings.Set().NewSettings()
 
-@click.command()
-def shell_book(bookid, pool):
+def book(bookid):
     Download.GetBook(bookid)
-    if pool:
-        Download.ThreadPool(Read['max_workers_number'])
+    if Vars.cfg.data.get('Open_ThreadPool'):
+        Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
     else:
         Download.chapters(pool=False)
 
 
-@click.command()
-def shell_login(login):
-    usernames = login.split(',')[0]
-    passwords = login.split(',')[1]
-    Download.Login(usernames, passwords)
+def login(user_info):
+    usernames, passwords = (
+        str(user_info).split(',')[0], 
+        str(user_info).split(',')[1])
+    from API.login import Login
+    Login(usernames, passwords).Login_account()
 
 
-@click.command()
-def shell_maxn_umber(max):
-    if max.isdigit():
-        Read['max_workers_number'] = 12 if int(max) > 12 else int(max)
-        print("线程已经设置为", Read['max_workers_number'])
-        Settings.Set().WriteSettings(Read)
+def maxs(max):
+    if str(max).isdigit():
+        max_workers_number = 12 if int(max) > 12 else int(max)
+        Vars.cfg.data['max_workers_number'] = max_workers_number
+        print("线程已经设置为", Vars.cfg.data.get('max_workers_number'))
+        Vars.cfg.save()
     else:
         print(max, "不是数字，请重新输入")
 
 
-def shell_book_name(name, pool):
+def name(name):
     search_book = Download.SearchBook(name)
     for i in search_book:
         Download.GetBook(i)
-        if pool:
+        if Vars.cfg.data.get('Open_ThreadPool'):
             print("开启多线程")
-            Download.ThreadPool(Read['max_workers_number'])
+            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
         else:
             Download.chapters(pool=False)
 
 
-@click.command()
-def shell_tag(tag, pool):
+def tag(tag):
     for i in Download.class_list(tag):
         Download.GetBook(i)
-        if pool:
-            Download.ThreadPool(Read['max_workers_number'])
+        if Vars.cfg.data.get('Open_ThreadPool'):
+            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
         else:
             Download.chapters(pool=False)
 
 
-def shell_rank(pool):
+def rank():
     for i in Download.ranking():
         Download.GetBook(i)
-        if pool:
-            Download.ThreadPool(Read['max_workers_number'])
+        if Vars.cfg.data.get('Open_ThreadPool'):
+            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
         else:
             Download.chapters(pool=False)
-
-
-@click.command()
-@click.option("--choice", prompt="please input choice", help="功能选择")
-@click.option('--tag',  help="tag number")
-@click.option('--bookid', help="bookid")
-@click.option('--name', help="nmae")
-@click.option('--login', help="账号,密码，注意需要用,隔开")
-@click.option('--max', default='10', help="Set thread  pool")
-@click.option('--pool', default=True, help="pool")
-
-def shell(choice, tag, bookid, login, max, name, pool):
-    if choice == 'h' or choice == 'help':
-        print(Read['help'])
-
-    if choice == 'l' or choice == 'login':
-        shell_login(login)
-
-    elif choice == 'n' or choice == 'name':
-        shell_book_name(name, pool)
-
-    elif choice == 'd' or choice == 'download':
-        shell_book(bookid, pool)
-
-    elif choice == 't' or choice == 'tag':
-        shell_tag(tag, pool)
-
-    elif choice == 'm' or choice == 'max':
-        shell_maxn_umber(max)
-
-    elif choice == 'r' or choice == 'rank':
-        shell_rank()
-    else:
-        print("选项为不存在,请输入-h获取帮助")
 
 
 if __name__ == '__main__':
+    Vars.cfg.load()
+    Settings.setup_config()
     Download = LaoMaoxsAPI.Download()
-    Read = Settings.Set().ReadSettings()
-    shell()
+    fire.Fire()
