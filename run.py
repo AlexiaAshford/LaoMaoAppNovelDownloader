@@ -57,7 +57,9 @@ def rank():
             Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
         else:
             Download.chapters(pool=False)
-
+def help():
+    print(Vars.cfg.data.get('help'))
+    
 
 if __name__ == '__main__':
     Vars.cfg.load()
