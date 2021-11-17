@@ -1,10 +1,10 @@
 import base64
 import hashlib
 from Crypto.Cipher import AES
+from instance import *
 
-
+# iv = Vars.cfg.data.get('iv')
 iv = b'8yeywyJ45esysW8M'
-
 
 def encrypt(text, key):
     """AES.MODE_CBC加密"""
@@ -13,10 +13,10 @@ def encrypt(text, key):
     return base64.b64encode(AES.AESMode.encrypt(text))
 
 
-def decrypt(encrypted, key='b23c159r9t88hl2q'):
+def decrypt(encrypted):
     """AES.MODE_CBC解密"""
-    aes_key = hashlib.sha256(key.encode('utf-8')).digest()
-    aes = AES.new(key.encode('utf-8'), AES.MODE_CBC, iv)
+    aes_key = hashlib.sha256(Vars.cfg.data.get('key').encode('utf-8')).digest()
+    aes = AES.new(Vars.cfg.data.get('key').encode('utf-8'), AES.MODE_CBC, iv)
     return pkcs7un_padding(aes.decrypt(base64.b64decode(encrypted)))
 
 
