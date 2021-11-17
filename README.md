@@ -17,6 +17,16 @@
 <li>Python3.4或以上</li>
 
 </ul>
+### 使用方法
+<li>本项目是基于fire模块实现的纯命令行项目</li>
+<li>你可以输入python run.py help获取详细</li>
+<li>
+help                                                --- 显示使用说明
+quit                                                --- 退出正在运作的程序
+d + bookid                                          --- 下载指定小说章节文本
+name + bookname                                     --- 输入书名下载小说文本
+tag + tagname                                       --- 下载全站标签书籍信息
+</li>
 
 ### 依赖包
 
