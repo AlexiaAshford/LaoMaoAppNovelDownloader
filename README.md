@@ -28,7 +28,7 @@
 
 ```
 help										--- 显示使用说明
-ctrl + c										--- 退出正在运作的程序
+ctrl + c									--- 退出正在运作的程序
 name + bookname									--- 输入书名下载小说文本
 tag + tagname									--- 下载全站标签书籍信息
 d + bookid									--- 下载指定小说章节文本
