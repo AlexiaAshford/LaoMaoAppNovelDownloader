@@ -8,10 +8,6 @@ def setup_config():
         Vars.cfg.data['help'] = "输入 - 加上首字母\nh | help\t\t\t\t\t\t--- 显示说明\nq | quit\t\t\t\t\t\t--- 退出正在运作的程序\nc | cookie\t\t\t\t\t\t--- 检测本地的cookie凭证\nb | b + bookid\t\t\t\t\t\t--- 下载指定小说章节文本\nu | u + url\t\t\t\t\t\t--- 下载指定小说章节文本\nn | n + bookname\t\t\t\t\t--- 输入书名下载小说文本\nt | t + tagname\t\t\t\t\t\t--- 下载全站标签书籍信息"
         config_change = True
 
-    if type(Vars.cfg.data.get('output_dir')) is not str or Vars.cfg.data.get('output_dir') == "":
-        Vars.cfg.data['output_dir'] = "Download"
-        config_change = True
-        
     if type(Vars.cfg.data.get('key')) is not str or Vars.cfg.data.get('key') == "":
         Vars.cfg.data['key'] = "b23c159r9t88hl2q"
         config_change = True
@@ -19,11 +15,14 @@ def setup_config():
     # if type(Vars.cfg.data.get('iv')) is not str or Vars.cfg.data.get('iv') == "":
     #     Vars.cfg.data['iv'] = b'8yeywyJ45esysW8M'
     #     config_change = True
-        
-    if type(Vars.cfg.data.get('save_dir')) is not str or Vars.cfg.data.get('save_dir') == "":
-        Vars.cfg.data['save_dir'] = "Config"
+
+    if type(Vars.cfg.data.get('output_dir')) is not str or Vars.cfg.data.get('output_dir') == "":
+        Vars.cfg.data['output_dir'] = "Download"
         config_change = True
-        
+    if type(Vars.cfg.data.get('save_dir')) is not str or Vars.cfg.data.get('save_dir') == "":
+        Vars.cfg.data['save_dir'] = "./Config/"
+        config_change = True
+
     if type(Vars.cfg.data.get('Open_ThreadPool')) is not bool:
         Vars.cfg.data['Open_ThreadPool'] = True
         config_change = True

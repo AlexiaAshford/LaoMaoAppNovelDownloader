@@ -14,3 +14,8 @@ def get(prompt, default=None):
             return ret
         elif default is not None:
             return default
+
+def content_(content):
+    import re
+    return ''.join([re.sub(r'^\s*', "\n　　", content)
+        for content in content.split("\n") if re.search(r'\S', content) != None])

@@ -1,23 +1,23 @@
 import fire
+import book
 from instance import *
-from API import LaoMaoxsAPI
-from API import Settings
+from API import LaoMaoxsAPI, Settings, HttpUtil, userlogin
 
 
-def book(bookid):
-    Download.GetBook(bookid)
-    if Vars.cfg.data.get('Open_ThreadPool'):
-        Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
+def d(bookid):
+    if str(bookid).isdigit():
+        book_info_url = 'https://api.laomaoxs.com/novel/txt/0/{}/index.html'.format(
+            bookid)
+        book.BOOK(HttpUtil.Util().get(book_info_url)).book_show()
     else:
-        Download.chapters(pool=False)
+        print('输入内容不是数字')
 
 
 def login(user_info):
     usernames, passwords = (
-        str(user_info).split(',')[0], 
+        str(user_info).split(',')[0],
         str(user_info).split(',')[1])
-    from API.login import Login
-    Login(usernames, passwords).Login_account()
+    userlogin.Login(usernames, passwords).Login_account()
 
 
 def maxs(max):
@@ -32,34 +32,29 @@ def maxs(max):
 
 def name(name):
     search_book = Download.SearchBook(name)
-    for i in search_book:
-        Download.GetBook(i)
-        if Vars.cfg.data.get('Open_ThreadPool'):
-            print("开启多线程")
-            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
-        else:
-            Download.chapters(pool=False)
+    for bookid in search_book:
+        book_info_url = 'https://api.laomaoxs.com/novel/txt/0/{}/index.html'.format(
+            bookid)
+        book.BOOK(HttpUtil.Util().get(book_info_url)).book_show()
 
 
 def tag(tag):
-    for i in Download.class_list(tag):
-        Download.GetBook(i)
-        if Vars.cfg.data.get('Open_ThreadPool'):
-            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
-        else:
-            Download.chapters(pool=False)
+    for bookid in Download.class_list(tag):
+        book_info_url = 'https://api.laomaoxs.com/novel/txt/0/{}/index.html'.format(
+            bookid)
+        book.BOOK(HttpUtil.Util().get(book_info_url)).book_show()
 
 
 def rank():
-    for i in Download.ranking():
-        Download.GetBook(i)
-        if Vars.cfg.data.get('Open_ThreadPool'):
-            Download.ThreadPool(Vars.cfg.data.get('max_workers_number'))
-        else:
-            Download.chapters(pool=False)
+    for bookid in Download.ranking():
+        book_info_url = 'https://api.laomaoxs.com/novel/txt/0/{}/index.html'.format(
+            bookid)
+        book.BOOK(HttpUtil.Util().get(book_info_url)).book_show()
+
+
 def help():
     print(Vars.cfg.data.get('help'))
-    
+
 
 if __name__ == '__main__':
     Vars.cfg.load()
