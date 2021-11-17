@@ -1,17 +1,12 @@
 import os
 import re
 from .HttpUtil import Util
-from .Settings import Set
+from instance import *
 from .AesDecrypt import *
 from rich.progress import track
 from concurrent.futures import ThreadPoolExecutor
 
-
-Settings = Set()
-Settings.NewSettings()
-ReadSetting = Settings.ReadSettings()
-WriteSettings = Settings.WriteSettings
-
+Vars.cfg.save()
 
 class Download():
     def __init__(self):
@@ -204,23 +199,3 @@ class Download():
         with open(os.path.join("Download", self.bookName + '.txt'), 'w') as f:
             self.filedir()
             print(f'\n小说 {self.bookName} 下载完成')
-
-    def Login(self, username, pwd):
-        url = 'https://api.laomaoxs.com/user/login'
-        data = {'account': username, 'pwd': pwd}
-        login_info, login_code, login_msg = (
-            Util.post(url, data).get('data'), Util.post(url, data).get('code'),
-            Util.post(url, data).get('msg'))
-        if login_code == 1 and login_msg == 'ok':
-            user_id, nickname, user_account, user_sex, user_token, user_img = (
-                login_info['user_id'], str(login_info['nickname']),
-                login_info['user_account'], login_info['user_sex'],
-                login_info['user_token'], login_info['user_img'])
-            ReadSetting['nickname'] = nickname
-            ReadSetting['user_token'] = user_token
-            ReadSetting['user_id'] = user_id
-            WriteSettings(ReadSetting)
-            print("{} login successfully!".format(nickname))
-
-        elif login_code == 0 and login_msg == '账号或密码错误！':
-            print(login_msg)
