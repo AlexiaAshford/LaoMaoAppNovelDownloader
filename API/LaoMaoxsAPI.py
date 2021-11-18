@@ -152,17 +152,19 @@ class Download:
 
                 book_title = del_title(self.chapter_list[number-1])
                 
-                fd = open(
+                fd = write(
                     os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"),
-                    'wb',
+                    'w',
                 )
 
-                fd.write(b'\n\n')
-                fd.write(book_title.encode())
-                fd.write(b'\n')
+                fd.write('\n\n')
+                fd.write(book_title)
+                fd.write('\n')
 
                 with session.get(url, headers=HttpUtil.headers) as response:
-                    fd.write(response.content)
+                    # fd.write(response.content)
+                    fd.write(json.loads(response.text)['data'])
+                    
 
                     lock_progress.acquire()
                     progress.update(prgtask, advance=1)
