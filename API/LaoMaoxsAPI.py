@@ -1,7 +1,11 @@
+from io import BytesIO
+from typing import List
 from API import HttpUtil
 from instance import *
-from concurrent.futures import ThreadPoolExecutor
+# from concurrent.futures import ThreadPoolExecutor, thread
 from functools import partial
+import requests, threading
+from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn, TransferSpeedColumn
 
 
 class Download:
@@ -24,17 +28,6 @@ class Download:
                 content.append(line)
         # print(content)
         write(os.path.join(Vars.cfg.data.get('output_dir'), f'{self.bookName}.txt'), 'w', ''.join(content))
-
-    def ThreadPool_download(self, urls, number):
-        """多线程下载函数"""
-        content = content_(HttpUtil.get(urls)['data'])
-        book_title = del_title(self.chapter_list[number-1])
-        if Vars.cfg.data.get('shield') not in content:
-            if Vars.cfg.data.get('shield2') not in content:
-                content_title = "\n\n{}\n{}".format(book_title, content)
-                write(os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"), 'w', content_title)
-        else:
-            print("{} 是屏蔽章节，跳过下载".format(book_title))
 
     def SearchBook(self, bookname):
         urls = ['https://api.laomaoxs.com/Search/index?key={}&page={}'.format(
@@ -76,6 +69,7 @@ class Download:
                 print(self.bookName)
                 ranking_list_bookid.append(data['book_id'])
         return ranking_list_bookid
+    
 
     def ThreadPool(self, chapters_url_list, BOOK_INFO_LIST):
         BOOK_INFO_LIST = BOOK_INFO_LIST[0]
@@ -89,19 +83,113 @@ class Download:
         self.isFinish = BOOK_INFO_LIST.get('book_status')
         """多线程并发实现"""
         # print('多进程', self.Read.get('Multithreading'))
-        executor = ThreadPoolExecutor(max_workers=self.max_worker)
-        task_list = []
+        # executor = ThreadPoolExecutor(max_workers=self.max_worker)
+        # task_list = []
+        # for number, book_url in enumerate(chapters_url_list):
+        #     task = partial(self.ThreadPool_download, book_url, number)
+        #     task_list.append(executor.submit(task))
+            
+        # if task_list:
+        #     for chapter_num in range(len(task_list)):
+        #         time.sleep(0.1)
+        #         print(chapter_num +1, '/', len(task_list), end = "\r")
+            
+        #     self.filedir()
+        #     print(f'\n小说 {self.bookName} 下载完成')
+        # else:
+        #     self.filedir()
+
+        # 创建 rich 进度条
+        lock_tasks_list = threading.Lock()
+        lock_progress = threading.Lock()
+        tasks = []
+        threads = []
+        progress = Progress(
+            TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+            BarColumn(bar_width=None),
+            "[progress.percentage]{task.percentage:>3.1f}%",
+            "•",
+            DownloadColumn(),
+            "•",
+            TransferSpeedColumn(),
+            "•",
+            TimeRemainingColumn(),
+        )
+
+        def downloader():
+            """多线程下载函数"""
+            # content = content_(HttpUtil.get(urls)['data'])
+            # book_title = del_title(self.chapter_list[number-1])
+            # if Vars.cfg.data.get('shield') not in content:
+            #     if Vars.cfg.data.get('shield2') not in content:
+            #         content_title = "\n\n{}\n{}".format(book_title, content)
+            #         fd = write(
+            #             os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"), 
+            #             'w', 
+            #             content_title
+            #         )
+            # else:
+            #     print(f"{book_title} 是屏蔽章节，跳过下载")
+
+            # tasks = [
+            #   [url, number],
+            #   [url, number],
+            #   ...
+            # ]
+            nonlocal lock_tasks_list, lock_progress, tasks, progress
+
+            session = requests.Session()
+
+            while tasks:
+                lock_tasks_list.acquire()
+                url, number = tasks.pop()
+                lock_tasks_list.release()
+
+                book_title = del_title(self.chapter_list[number-1])
+                
+                fd: BytesIO = write(
+                    os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"),
+                    'wb'
+                )
+
+                fd.write(b'\n\n')
+                fd.write(book_title.encode())
+                fd.write(b'\n')
+
+                with session.get(url, headers=HttpUtil.headers, stream=True) as response:
+                    content_size = int(response.headers['content-length'])  # 内容体总大小
+                    downloaded = 0
+
+                    lock_progress.acquire()
+                    task = progress.add_task("Download", filename=f"{number}.{book_title}.txt", total=content_size)
+                    lock_progress.release()
+
+                    # 默认4k一块
+                    for data in response.iter_content(chunk_size=4096):
+                        fd.write(data)
+                        downloaded = downloaded + len(data)
+
+                        lock_progress.acquire()
+                        progress.update(task, completed=downloaded)
+                        lock_progress.release()
+
+        # 生成下载队列.
         for number, book_url in enumerate(chapters_url_list):
-            task = partial(self.ThreadPool_download, book_url, number)
-            task_list.append(executor.submit(task))
-            
-        if task_list:
-            for chapter_num in range(len(task_list)):
-                time.sleep(0.1)
-                print(chapter_num +1, '/', len(task_list), end = "\r")
-            
-            self.filedir()
-            print(f'\n小说 {self.bookName} 下载完成')
-        else:
-            self.filedir()
+            tasks.append(
+                (book_url, number)
+            )
+        
+        for _ in range(self.max_worker):
+            th = threading.Thread(target=downloader)
+            threads.append(th)
+            th.start()
+
+        # wait downloader
+        for th in threads:
+            th.join()
+
+        self.filedir()
+        print(f'\n小说 {self.bookName} 下载完成')
+
+
 
