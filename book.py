@@ -1,56 +1,66 @@
-import os
 from instance import *
 from API.LaoMaoxsAPI import Download
+from API import UrlConstants
 
 class BOOK:
 
     def __init__(self, BOOK_INFO):
-        self.BOOK_INFO = BOOK_INFO
-        self.chapterurl = 'https://api.laomaoxs.com/novel/txt/{}/{}/{}.html'
-
-
+        self.book_info = BOOK_INFO
+        self.book_info_msg = BOOK_INFO.get('msg')
+        self.book_info_code = BOOK_INFO.get('code')
+        self.book_info_data = self.book_info.get('data')
+        self.save_dir = Vars.cfg.data.get('save_dir')
+        self.output_dir = Vars.cfg.data.get('output_dir')
+        self.book_info_data_list = []
+        
     def config_bookname(self):
         return os.listdir(os.path.join('config', self.bookName))
     
     def get_book_info(self):
-        self.BOOK_INFO_LIST = []
-        if self.BOOK_INFO.get('msg') == 'ok':
-            Book_Data = self.BOOK_INFO.get('data')
-            self.bookid = Book_Data.get('book_id')
-            self.bookName = Book_Data.get('book_title')
-            self.novel_intro = Book_Data.get('book_desc')
-            self.authorName = Book_Data.get('book_author')
-            self.chapter_list = Book_Data.get('chapter_list')
-            self.lastUpdateTime = Book_Data.get('update_time')
-            self.book_type = Book_Data.get('book_type')
-            self.isFinish = Book_Data.get('book_status')
-            self.BOOK_INFO_LIST.append(Book_Data)
+        if self.book_info_msg == 'ok':
+            self.bookid = self.book_info_data.get('book_id')
+            self.bookName = self.book_info_data.get('book_title')
+            self.novel_intro = self.book_info_data.get('book_desc')
+            self.authorName = self.book_info_data.get('book_author')
+            self.chapter_list = self.book_info_data.get('chapter_list')
+            self.lastUpdateTime = time.localtime(self.book_info_data.get('update_time'))
+            self.lastUpdateTime = time.strftime("%Y-%m-%d %H:%M:%S",self.lastUpdateTime)
+            self.book_type = self.book_info_data.get('book_type')
+            self.isFinish = self.book_info_data.get('book_status')
+            self.book_info_data_list.append(self.book_info_data)
             return True
         else:
             return False
 
     def book_show(self):
         if self.get_book_info():
-            print("\n\n书名:{}\n序号:{}\n作者:{}\n分类:{}".format(
-                self.bookName, self.bookid, self.authorName, self.book_type))
-            print("简介:{}\n更新时间:{}\n{}".format(
-                self.novel_intro, self.lastUpdateTime, self.isFinish))
+            show_intro = "\n\n书名:{}\n序号:{}\n作者:{}\n分类:{}\n更新:{}".format(
+                    self.bookName, self.bookid, self.authorName, 
+                    self.book_type, self.lastUpdateTime)
+            print(show_intro)
+            show_intro += "简介:{}\n".format(self.novel_intro)
             """建立文件夹和文件"""
             self.os_file()
-            Download().ThreadPool(self.chapters(), self.BOOK_INFO_LIST)
+            Download().ThreadPool(self.chapters(), self.book_info_data_list)
         else:
-            print('书籍信息获取失败！')
+            self.book_info_msg
 
     def chapters(self):
         chapters_list = []
+        config_bookname = self.config_bookname()
         for chapter_id_num, chapter_id in enumerate(range(len(self.chapter_list))):
             """跳过已经下载的章节"""
-            if self.chapter_list[chapter_id_num] in ''.join(self.config_bookname()):
-                print(self.chapter_list[chapter_id_num], '已经下载过')
+            chapter_title = self.chapter_list[chapter_id_num]
+            if del_title(chapter_title) in ''.join(config_bookname):
+            # if self.chapter_list[chapter_id_num] in ''.join(self.config_bookname()):
+                # print(self.chapter_list[chapter_id_num], '已经下载过')
                 continue
             url_num = int(int(self.bookid)/1000)  # 书本编号等于bookid÷1000
-            chapters_list.append(self.chapterurl.format(url_num, self.bookid, chapter_id))
-        print('开始下载 {} ,一共剩余{}章'.format(self.bookName, len(chapters_list)))
+            chapters_list.append(UrlConstants.CHAP_CONTENT.format(url_num, self.bookid, chapter_id))
+        if len(chapters_list) == 0:
+            print("没有需要下载的章节")
+        else:
+            print('开始下载 {} ,一共剩余{}章'.format(self.bookName, len(chapters_list)))
         return chapters_list
         
         # 单线程
@@ -80,24 +90,14 @@ class BOOK:
     def os_file(self):
         self.main_path = os.getcwd()  # 项目路径
         # 创建Download文件夹
-        if not os.path.exists(Vars.cfg.data.get('output_dir')):
-           os.mkdir(Vars.cfg.data.get('output_dir'))
-           print(f'已在{self.main_path}创建Download文件夹')
+        if not os.path.exists(self.output_dir):
+           os.mkdir(self.output_dir)
+           print(f'已在{self.main_path}创建{self.output_dir}文件夹')
 
-        # 创建config_json文件夹
-        if not os.path.exists(Vars.cfg.data.get('save_dir')):
-           os.mkdir(Vars.cfg.data.get('save_dir'))
-           print(f'已在{self.main_path}创建config文件夹')
+        # 创建config文件夹
+        if not os.path.exists(self.save_dir):
+           os.mkdir(self.save_dir)
+           print(f'已在{self.main_path}创建{self.save_dir}文件夹')
 
-        if not os.path.exists(os.path.join('config', self.bookName)):
-            os.makedirs(os.path.join('config', self.bookName))
-
-        # 创建list文本
-        if not (os.path.join(self.main_path, "list.txt")):
-           file = open(os.path.join(self.main_path, "list.txt"),
-                       'a', encoding='utf-8')
-
-        # 创建txt文本
-        if not os.path.exists(os.path.join(Vars.cfg.data.get('output_dir'), f"{self.bookName}.txt")):
-            open(os.path.join(Vars.cfg.data.get('output_dir'),
-                        f"{self.bookName}.txt"), "a", encoding='utf-8')
+        if not os.path.exists(os.path.join(self.save_dir, self.bookName)):
+            os.makedirs(os.path.join(self.save_dir, self.bookName))
