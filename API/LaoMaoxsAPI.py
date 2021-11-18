@@ -1,75 +1,62 @@
-import os
-import re
-from .HttpUtil import Util
+from API import HttpUtil
 from instance import *
-from .AesDecrypt import *
-from rich.progress import track
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 
-Vars.cfg.save()
 
-
-class Download():
+class Download:
     def __init__(self):
         self.bookid = ''
         self.bookName = ""
         self.novel_intro = ""
+        self.save_dir = Vars.cfg.data.get('save_dir')
+        self.output_dir = Vars.cfg.data.get('output_dir')
         self.max_worker = Vars.cfg.data.get('max_workers_number')
-        self.getUtil = Util().get
 
     def filedir(self):
-        meragefiledir = os.path.join(
-            'config', self.bookName)  # 获取当前文件夹中的文件名称列表
-        filenames = os.listdir(meragefiledir)
-        filenames.sort(key=lambda x: int(x.split('.')[0]))
-        file = open(os.path.join(
-            'Download', f'{self.bookName}.txt'), 'a', encoding='utf-8')
-        for filename in filenames:  # 先遍历文件名
-            filepath = os.path.join(meragefiledir, filename)
+        content = []
+        meragefiledir = os.path.join(self.save_dir, self.bookName)
+        file_names_list = os.listdir(meragefiledir)
+        file_names_list.sort(key=lambda x: int(x.split('.')[0]))
+        for filename in file_names_list:  # 先遍历文件名
             #遍历单个文件，读取行数
-            for line in open(filepath, encoding='utf-8'):
-                file.writelines(line)
-            file.write('\n')
-        file.close()
-
-    def write_txt(self, content_chap_title, chapter_list, number):  # 将信息写入TXT文件
-        """删去windowns不规范字符"""
-        chapter_list = re.sub(r'[？?\*|“<>:/]', '', chapter_list)
-        with open(os.path.join('config', self.bookName, f"{number}.{chapter_list}.txt"), 'w', encoding='utf-8', newline='') as fb:
-            fb.write(str(content_chap_title))
+            for line in open(os.path.join(meragefiledir, filename), encoding='utf-8'):
+                content.append(line)
+        # print(content)
+        write(os.path.join(Vars.cfg.data.get('output_dir'), f'{self.bookName}.txt'), 'w', ''.join(content))
 
     def ThreadPool_download(self, urls, number):
         """多线程下载函数"""
-        content = self.getUtil(urls)['data']
-        book_title = self.chapter_list[number-1]
-        """跳过屏蔽章节"""
-        if "\\n\\n  编辑正在手打中，稍后点击右上角刷新当前章节！" not in content:
-            print(book_title)
-            content_title = "\n\n{}\n{}".format(book_title, content_(content))
-            self.write_txt(content_title, book_title, number)
+        content = content_(HttpUtil.get(urls)['data'])
+        book_title = del_title(self.chapter_list[number-1])
+        if Vars.cfg.data.get('shield') not in content:
+            if Vars.cfg.data.get('shield2') not in content:
+                content_title = "\n\n{}\n{}".format(book_title, content)
+                write(os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"), 'w', content_title)
         else:
-            print("{}这是屏蔽章节，跳过下载".format(book_title))
+            print("{} 是屏蔽章节，跳过下载".format(book_title))
 
     def SearchBook(self, bookname):
         urls = ['https://api.laomaoxs.com/Search/index?key={}&page={}'.format(
             bookname, i) for i in range(100)]
+            
+        # print(url)
         for url in urls:
-            if not self.getUtil(url)['data']:
-                print('获取完毕')
+            if not HttpUtil.get(url)['data']:
                 break
             """存储bookid进列表中"""
             search_book = [data['book_id']
-                           for data in self.getUtil(url)['data']]
+                           for data in HttpUtil.get(url)['data']]
         return search_book
 
     def class_list(self, Tag_Number):
         class_list_bookid = []
         for i in range(10000):
             url = f'https://api.laomaoxs.com/novel/lists?order=0&status=0&sex=1&page={i}&type={Tag_Number}'
-            if not self.getUtil(url)['data']:
+            if not HttpUtil.get(url)['data']:
                 print('排行榜已经下载完毕')
                 break
-            for data in self.getUtil(url)['data']:
+            for data in HttpUtil.get(url)['data']:
                 self.bookName = data['book_title']
                 bookid = str(data['book_id'])
                 print(self.bookName)
@@ -81,10 +68,10 @@ class Download():
         ranking_list_bookid = []
         for i in range(10000):
             url = f'https://api.laomaoxs.com/novel/ranking?sex=2&page={i}&order=0'
-            if not self.getUtil(url)['data']:
+            if not HttpUtil.get(url)['data']:
                 print('分类已经下载完毕')
                 break
-            for data in self.getUtil(url)['data']:
+            for data in HttpUtil.get(url)['data']:
                 self.bookName = data['book_title']
                 print(self.bookName)
                 ranking_list_bookid.append(data['book_id'])
@@ -101,10 +88,20 @@ class Download():
         self.book_type = BOOK_INFO_LIST.get('book_type')
         self.isFinish = BOOK_INFO_LIST.get('book_status')
         """多线程并发实现"""
-        with ThreadPoolExecutor(max_workers=self.max_worker) as t:
-            for number, book_url in enumerate(chapters_url_list):
-                t.submit(self.ThreadPool_download, book_url, number)
-
-        with open(os.path.join("Download", self.bookName + '.txt'), 'w') as f:
+        # print('多进程', self.Read.get('Multithreading'))
+        executor = ThreadPoolExecutor(max_workers=self.max_worker)
+        task_list = []
+        for number, book_url in enumerate(chapters_url_list):
+            task = partial(self.ThreadPool_download, book_url, number)
+            task_list.append(executor.submit(task))
+            
+        if task_list:
+            for chapter_num in range(len(task_list)):
+                time.sleep(0.1)
+                print(chapter_num +1, '/', len(task_list), end = "\r")
+            
             self.filedir()
             print(f'\n小说 {self.bookName} 下载完成')
+        else:
+            self.filedir()
+
