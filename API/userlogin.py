@@ -1,18 +1,16 @@
 from instance import *
-from .HttpUtil import Util
-
+from API import HttpUtil, UrlConstants
 
 class Login:
 
     def __init__(self, username, password):
         self.username = username
         self.password = password
-        self.login_url = 'https://api.laomaoxs.com/user/login'
 
 
     def Login_account(self):
-        data = {'account': self.username, 'pwd': self.password}
-        login_user = Util.post(self.login_url, data)
+        user_data = {'account': self.username, 'pwd': self.password}
+        login_user = HttpUtil.post(UrlConstants.USER_LOGIN, data=user_data)
         login_info, login_code, login_msg = (
             login_user.get('data'), login_user.get('code'),
             login_user.get('msg'))
