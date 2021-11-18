@@ -1,11 +1,7 @@
-from io import BytesIO
-from typing import List
 from API import HttpUtil
 from instance import *
-# from concurrent.futures import ThreadPoolExecutor, thread
-from functools import partial
 import requests, threading
-from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn, TransferSpeedColumn
+from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn
 
 
 class Download:
@@ -105,16 +101,25 @@ class Download:
         tasks = []
         threads = []
         progress = Progress(
-            TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+            # TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
             BarColumn(bar_width=None),
             "[progress.percentage]{task.percentage:>3.1f}%",
             "•",
             DownloadColumn(),
-            "•",
-            TransferSpeedColumn(),
+            # "•",
+            # TransferSpeedColumn(),
             "•",
             TimeRemainingColumn(),
         )
+
+        # 生成下载队列.
+        for number, book_url in enumerate(chapters_url_list):
+            tasks.append(
+                (book_url, number)
+            )
+        prgtask = progress.add_task(
+            "Download", total=len(tasks)
+            )
 
         def downloader():
             """多线程下载函数"""
@@ -136,7 +141,7 @@ class Download:
             #   [url, number],
             #   ...
             # ]
-            nonlocal lock_tasks_list, lock_progress, tasks, progress
+            nonlocal lock_tasks_list, lock_progress, tasks, progress, prgtask
 
             session = requests.Session()
 
@@ -147,37 +152,21 @@ class Download:
 
                 book_title = del_title(self.chapter_list[number-1])
                 
-                fd: BytesIO = write(
+                fd = open(
                     os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"),
-                    'wb'
+                    'wb',
                 )
 
                 fd.write(b'\n\n')
                 fd.write(book_title.encode())
                 fd.write(b'\n')
 
-                with session.get(url, headers=HttpUtil.headers, stream=True) as response:
-                    content_size = int(response.headers['content-length'])  # 内容体总大小
-                    downloaded = 0
+                with session.get(url, headers=HttpUtil.headers) as response:
+                    fd.write(response.content)
 
                     lock_progress.acquire()
-                    task = progress.add_task("Download", filename=f"{number}.{book_title}.txt", total=content_size)
+                    progress.update(prgtask, advance=1)
                     lock_progress.release()
-
-                    # 默认4k一块
-                    for data in response.iter_content(chunk_size=4096):
-                        fd.write(data)
-                        downloaded = downloaded + len(data)
-
-                        lock_progress.acquire()
-                        progress.update(task, completed=downloaded)
-                        lock_progress.release()
-
-        # 生成下载队列.
-        for number, book_url in enumerate(chapters_url_list):
-            tasks.append(
-                (book_url, number)
-            )
         
         for _ in range(self.max_worker):
             th = threading.Thread(target=downloader)
