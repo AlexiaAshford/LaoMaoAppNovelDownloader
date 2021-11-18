@@ -1,10 +1,16 @@
 # LaoMaoAppNovelDownloader
 ## 老猫小说APP爬虫 
+
 ### 关于仓库
 <li>这是重构的老猫小说项目，可以理解成2.0版本</li>
 <li>重构前的项目名字为：Laomao_Novel_Download ，Laomao_Novel_Download这个项目也是我写的，不过仓库现在已经删除</li>
 
 ---
+
+## 感谢@Youkii-Chen的pull request
+
+---
+
 ## 实现功能
 <ul>
 <li>支持多线程，默认为6线程</li>
