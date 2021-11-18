@@ -1,4 +1,5 @@
 from API import HttpUtil
+from API.AesDecrypt import decrypt, example
 from instance import *
 import requests, threading
 from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn
@@ -156,15 +157,14 @@ class Download:
                     os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"),
                     'w',
                 )
-
+                
                 fd.write('\n\n')
                 fd.write(book_title)
                 fd.write('\n')
 
                 with session.get(url, headers=HttpUtil.headers) as response:
-                    # fd.write(response.content)
-                    fd.write(json.loads(response.text)['data'])
-                    
+                    content = example(decrypt(response.content)).get('data')
+                    fd.write(content_(content))
 
                     lock_progress.acquire()
                     progress.update(prgtask, advance=1)
@@ -181,6 +181,5 @@ class Download:
 
         self.filedir()
         print(f'\n小说 {self.bookName} 下载完成')
-
 
 
