@@ -8,7 +8,7 @@
 ---
 
 ## 感谢@Youkii-Chen的pull request
-
+<li>感谢@Youkii-Chen优化了多线程，添加request Keep-Alive 模式减少tcp连接访问，大幅提升运行速度</li>
 ---
 
 ## 实现功能
