@@ -19,12 +19,10 @@ class Shell(object):
         if usernames != None and passwords != None:
             if len(str(usernames)) <= 6:
                 print("账号不能小于6位!")
-                usernames = None
-                user_setting = False
+                usernames, user_setting= None, False
             if len(str(passwords)) <= 6:
                 print("密码不能小于6位!")
-                passwords = None
-                user_setting = False
+                passwords. user_setting= None, False
             else:
                 user_setting = True
         if usernames is None:
@@ -57,13 +55,12 @@ class Shell(object):
 
 
     def name(self, bookName=None):
-        # print(bookName)
         if bookName is None:
             bookName = get('请输入bookName:').strip()
-            Download.SearchBook(bookName)
+            search_bookid_list = Download.SearchBook(bookName)
         else:
-            search_book = Download.SearchBook(bookName)
-        for bookid in search_book:
+            search_bookid_list = Download.SearchBook(bookName)
+        for bookid in search_bookid_list:
             book_info_url = UrlConstants.BOOK_INDEX.format(bookid)
             book.BOOK(HttpUtil.get(book_info_url)).book_show()
 

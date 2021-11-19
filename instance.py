@@ -8,6 +8,10 @@ class Vars:
     current_bookshelf = None
     current_book = None
 
+def time_(_time_):
+    if type(_time_) is not int:
+        _time_ = int(_time_)
+    return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(_time_))
 
 def get(prompt, default=None):
     while True:
@@ -19,7 +23,7 @@ def get(prompt, default=None):
 
 def del_title(title):
     """删去windowns不规范字符"""
-    return re.sub(r'[？?\*|“<>:/]', '', title)
+    return re.sub(r'[？?\*|“<>:/\\]', '', title)
 
 def content_(content):
     return ''.join([re.sub(r'^\s*', "\n　　", content)

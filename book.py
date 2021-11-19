@@ -3,7 +3,14 @@ from API.LaoMaoxsAPI import Download
 from API import UrlConstants
 
 class BOOK:
-
+    bookid = None
+    bookName = None
+    novel_intro = None
+    authorName = None
+    chapter_list = None
+    book_type = None
+    isFinish = None
+    
     def __init__(self, BOOK_INFO):
         self.book_info = BOOK_INFO
         self.book_info_msg = BOOK_INFO.get('msg')
@@ -34,13 +41,21 @@ class BOOK:
 
     def book_show(self):
         if self.get_book_info():
-            show_intro = "\n\n书名:{}\n序号:{}\n作者:{}\n分类:{}\n更新:{}".format(
-                    self.bookName, self.bookid, self.authorName, 
-                    self.book_type, self.lastUpdateTime)
-            print(show_intro)
-            show_intro += "简介:{}\n".format(self.novel_intro)
-            """建立文件夹和文件"""
             self.os_file()
+            show_intro = "书名:{}\n序号:{}\n作者:{}\n分类:{}\n更新:{}".format(
+                    self.bookName, self.bookid, self.authorName, 
+                        self.book_type, self.lastUpdateTime)
+            print(show_intro)
+            show_intro += "\n简介信息:{}\n".format(content_(self.novel_intro))
+            
+            save_dir_bookflie = os.path.join(Vars.cfg.data.get('save_dir'), self.bookName)
+            if not os.path.exists(save_dir_bookflie):
+                os.makedirs(save_dir_bookflie)
+                
+            write(os.path.join(save_dir_bookflie , '0.intro.txt'), 'w', show_intro)
+
+            """建立文件夹和文件"""
+            
             Download().ThreadPool(self.chapters(), self.book_info_data_list)
         else:
             self.book_info_msg
