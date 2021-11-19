@@ -57,12 +57,24 @@ class Shell(object):
     def name(self, bookName=None):
         if bookName is None:
             bookName = get('请输入bookName:').strip()
-            search_bookid_list = Download.SearchBook(bookName)
-        else:
-            search_bookid_list = Download.SearchBook(bookName)
-        for bookid in search_bookid_list:
-            book_info_url = UrlConstants.BOOK_INDEX.format(bookid)
-            book.BOOK(HttpUtil.get(book_info_url)).book_show()
+        search_result_url_list = [
+            UrlConstants.SERCH_BOOK.format(
+                    bookName, i) for i in range(100)]
+        
+        from API.Search import SearchBooks
+        for list_num, url in enumerate(search_result_url_list):
+            print(list_num)
+            if SearchBooks(url).test_data_list() is True:
+                print(f'第{list_num}页下载完毕')
+            else:
+                print('已下载完所有搜索的书籍')
+                break
+        #     search_bookid_list = Download.SearchBook(bookName)
+        # else:
+        #     search_bookid_list = Download.SearchBook(bookName)
+        # for bookid in search_bookid_list:
+        #     book_info_url = UrlConstants.BOOK_INDEX.format(bookid)
+        #     book.BOOK(HttpUtil.get(book_info_url)).book_show()
 
 
     def tag(self, tag):
