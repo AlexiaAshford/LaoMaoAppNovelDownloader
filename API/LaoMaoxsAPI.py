@@ -1,30 +1,31 @@
-from API import HttpUtil
+from API import HttpUtil, UrlConstants
 from API.AesDecrypt import decrypt, example
 from instance import *
 import requests, threading
-from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn
+# from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn
 
 
 class Download:
     def __init__(self):
         self.bookid = ''
         self.bookName = ""
-        self.novel_intro = ""
+        self.progress_num = 0
         self.save_dir = Vars.cfg.data.get('save_dir')
         self.output_dir = Vars.cfg.data.get('output_dir')
         self.max_worker = Vars.cfg.data.get('max_workers_number')
 
     def filedir(self):
-        content = []
         meragefiledir = os.path.join(self.save_dir, self.bookName)
         file_names_list = os.listdir(meragefiledir)
         file_names_list.sort(key=lambda x: int(x.split('.')[0]))
         for filename in file_names_list:  # 先遍历文件名
             #遍历单个文件，读取行数
             for line in open(os.path.join(meragefiledir, filename), encoding='utf-8'):
-                content.append(line)
-        # print(content)
-        write(os.path.join(Vars.cfg.data.get('output_dir'), f'{self.bookName}.txt'), 'w', ''.join(content))
+                if Vars.cfg.data.get('shield') in line or \
+                    Vars.cfg.data.get('shield2') in line:
+                    continue
+                else:
+                    write(os.path.join(Vars.cfg.data.get('output_dir'), f'{self.bookName}.txt'), 'a', line)
 
     def SearchBook(self, bookname):
         urls = ['https://api.laomaoxs.com/Search/index?key={}&page={}'.format(
@@ -101,75 +102,57 @@ class Download:
         lock_progress = threading.Lock()
         tasks = []
         threads = []
-        progress = Progress(
-            # TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
-            BarColumn(bar_width=None),
-            "[progress.percentage]{task.percentage:>3.1f}%",
-            "•",
-            DownloadColumn(),
-            # "•",
-            # TransferSpeedColumn(),
-            "•",
-            TimeRemainingColumn(),
-        )
+        # progress = Progress(
+        #     # TextColumn("[bold blue]{task.fields[filename]}", justify="right"),
+        #     BarColumn(bar_width=None),
+        #     "[progress.percentage]{task.percentage:>3.1f}%",
+        #     "•",
+        #     DownloadColumn(),
+        #     # "•",
+        #     # TransferSpeedColumn(),
+        #     "•",
+        #     TimeRemainingColumn(),
+        # )
 
         # 生成下载队列.
         for number, book_url in enumerate(chapters_url_list):
             tasks.append(
-                (book_url, number)
+                (UrlConstants.WEB_SITE + book_url, number)
             )
-        prgtask = progress.add_task(
-            "Download", total=len(tasks)
-            )
-
+            
+        # prgtask = progress.add_task(
+        #     "Download", total=len(tasks)
+        #     )
+        self.chapters_url_list = chapters_url_list
+        # print(self.chapters_url_list)
         def downloader():
             """多线程下载函数"""
-            # content = content_(HttpUtil.get(urls)['data'])
-            # book_title = del_title(self.chapter_list[number-1])
-            # if Vars.cfg.data.get('shield') not in content:
-            #     if Vars.cfg.data.get('shield2') not in content:
-            #         content_title = "\n\n{}\n{}".format(book_title, content)
-            #         fd = write(
-            #             os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"), 
-            #             'w', 
-            #             content_title
-            #         )
-            # else:
-            #     print(f"{book_title} 是屏蔽章节，跳过下载")
-
-            # tasks = [
-            #   [url, number],
-            #   [url, number],
-            #   ...
-            # ]
-            nonlocal lock_tasks_list, lock_progress, tasks, progress, prgtask
+            nonlocal lock_tasks_list, lock_progress, tasks # progress, prgtask
 
             session = requests.Session()
-
+            
             while tasks:
                 lock_tasks_list.acquire()
                 url, number = tasks.pop()
                 lock_tasks_list.release()
-
-                book_title = del_title(self.chapter_list[number-1])
+                self.progress_num += 1
+                print(f'下载进度:{self.progress_num}/{len(self.chapters_url_list)}', end = "\r")
                 
+                book_title = del_title(self.chapter_list[number-1])
+                # print(book_title)
                 fd = write(
                     os.path.join(self.save_dir, self.bookName, f"{number}.{book_title}.txt"),
                     'w',
                 )
-                
-                fd.write('\n\n')
-                fd.write(book_title)
-                fd.write('\n')
-
                 with session.get(url, headers=HttpUtil.headers) as response:
                     content = example(decrypt(response.content)).get('data')
-                    fd.write(content_(content))
+                    fd.write('\n\n\n{}\n{}'.format(book_title, content_(content)))
 
                     lock_progress.acquire()
-                    progress.update(prgtask, advance=1)
+                    # progress.update(prgtask, advance=1)
                     lock_progress.release()
-        
+                
+            
         for _ in range(self.max_worker):
             th = threading.Thread(target=downloader)
             threads.append(th)
@@ -180,6 +163,6 @@ class Download:
             th.join()
 
         self.filedir()
-        print(f'\n小说 {self.bookName} 下载完成')
+        print(f'\n小说 {self.bookName} 下载完成\n\n')
 
 

@@ -31,7 +31,7 @@ def setup_config():
         Vars.cfg.data['tocken'] = ""
         config_change = True
     if type(Vars.cfg.data.get('shield2')) is not str or Vars.cfg.data.get('shield2') == "":
-        Vars.cfg.data['shield2'] = "　　编辑正在手打中，稍后点击右上角刷新当前章节！"
+        Vars.cfg.data['shield2'] = "编辑正在手打中"
         config_change = True
     if type(Vars.cfg.data.get('shield')) is not str or Vars.cfg.data.get('shield') == "":
         Vars.cfg.data['shield'] = "\\n\\n  编辑正在手打中，稍后点击右上角刷新当前章节！"
