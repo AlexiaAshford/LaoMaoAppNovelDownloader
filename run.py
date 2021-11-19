@@ -1,6 +1,7 @@
 import fire
 import book
 from instance import *
+from function.Search import SearchBooks
 from API import LaoMaoxsAPI, Settings, HttpUtil, userlogin, UrlConstants
 
 class Shell(object):
@@ -58,17 +59,16 @@ class Shell(object):
         if bookName is None:
             bookName = get('请输入bookName:').strip()
         search_result_url_list = [
-            UrlConstants.SERCH_BOOK.format(
-                    bookName, i) for i in range(100)]
+            UrlConstants.SERCH_BOOK.format(bookName, i) for i in range(100)]
         
-        from API.Search import SearchBooks
         for list_num, url in enumerate(search_result_url_list):
-            print(list_num)
-            if SearchBooks(url).test_data_list() is True:
+            test_data = SearchBooks(url).test_data_list()
+            if test_data is True:
                 print(f'第{list_num}页下载完毕')
+            elif test_data == 404:
+                return '搜结果不存在这本书！'
             else:
-                print('已下载完所有搜索的书籍')
-                break
+                return '已下载完所有搜索的书籍'
         #     search_bookid_list = Download.SearchBook(bookName)
         # else:
         #     search_bookid_list = Download.SearchBook(bookName)
