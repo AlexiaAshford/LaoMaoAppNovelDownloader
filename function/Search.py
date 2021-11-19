@@ -20,7 +20,11 @@ class SearchBooks:
                 self.get_seach_info()
                 return True
             else:
+                print('已下载完所有搜索的书籍')
                 return False
+        else:
+            print('搜结果不存在这本书！')
+            return 404
 
     def get_seach_info(self):
         for info_data in self.search_info_data:
