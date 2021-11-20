@@ -1,7 +1,7 @@
 import fire
 import book
 from instance import *
-from function import Search, userlogin
+from function import Search, userlogin, Category
 from API import LaoMaoxsAPI, Settings, HttpUtil, UrlConstants
 
 class Shell(object):
@@ -60,11 +60,15 @@ class Shell(object):
             UrlConstants.SERCH_BOOK.format(bookName, i) for i in range(20)]
         
         for list_num, url in enumerate(search_result_url_list):
-            
-            if Search.SearchBooks(url).get_seach_info() != 0:
-                print(f'第{list_num}页下载完毕')
-            else:
-                return '已下载完所有搜索的书籍'
+            Search_ = Search.SearchBooks(url)
+            if Search_.test_data_list() == 200:
+                print(f'开始下载第{list_num}页')
+                Search_.get_seach_info()
+            elif Search_.test_data_list() == 0:
+                print('已下载完所有搜索的书籍')
+                return 
+            elif Search_.test_data_list() == 404:
+                print('搜结果不存在这本书！')
         #     search_bookid_list = Download.SearchBook(bookName)
         # else:
         #     search_bookid_list = Download.SearchBook(bookName)
@@ -73,12 +77,22 @@ class Shell(object):
         #     book.BOOK(HttpUtil.get(book_info_url)).book_show()
 
 
-    def tag(self, tag):
-        if tag is None:
-            tag = get('请输入tag:').strip()
-        for bookid in Download.class_list(tag):
-            book_info_url = UrlConstants.BOOK_INDEX.format(bookid)
-            book.BOOK(HttpUtil.get(book_info_url)).book_show()
+    def tag(self, Categor_num=None):
+        if Categor_num is None:
+            Categor_num = get('请输入tag:').strip()
+        
+        Categor_url_list = [UrlConstants.CATEGOR_URL.format(
+            i, Categor_num) for i in range(10000)]
+        for list_num, Categor_url in enumerate(Categor_url_list):
+            Category_ = Category.Categorys(Categor_url)
+            if Category_.test() == 200:
+                print(f'开始下载第{list_num}页')
+                Category.Categorys(Categor_url).Category_download()
+            elif Category_.test() == 0:
+                print('分类已经下载完毕')
+                return
+            elif Category_.test() == 404:
+                print('获取失败')
 
 
     def rank(self):
