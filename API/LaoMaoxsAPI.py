@@ -19,16 +19,14 @@ class Download:
         meragefiledir = os.path.join(self.save_dir, self.bookName)
         file_names_list = os.listdir(meragefiledir)
         file_names_list.sort(key=lambda x: int(x.split('.')[0]))
-        for filename in file_names_list:  # 先遍历文件名
-            #遍历单个文件，读取行数
-            for line in open(os.path.join(meragefiledir, filename), encoding='utf-8'):
-                if Vars.cfg.data.get('shield') in line or \
-                        Vars.cfg.data.get('shield2') in line:
-                    continue
-                else:
-                    write(os.path.join(Vars.cfg.data.get('output_dir'),
-                          f'{self.bookName}.txt'), 'a', line)
-
+        write(os.path.join(Vars.cfg.data.get('output_dir'),f'{self.bookName}.txt'), 'w')
+        for filename in file_names_list: 
+            config_file = open(os.path.join(meragefiledir, filename), 'r', encoding='utf-8').read()
+            if Vars.cfg.data.get('shield') not in config_file:
+                write(os.path.join(Vars.cfg.data.get('output_dir'),
+                        f'{self.bookName}.txt'), 'a', config_file)
+            else:
+                continue
     def ranking(self):
         ranking_list_bookid = []
         for i in range(10000):
