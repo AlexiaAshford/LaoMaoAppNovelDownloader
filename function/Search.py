@@ -16,7 +16,8 @@ class SearchBooks:
 
     def test_data_list(self):
         if self.search_info_msg == 'OK':
-            if self.search_info_data is not None:
+            if self.search_info_data != []:
+                print(self.search_info)
                 return 200
             else:
                 return 0
