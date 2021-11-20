@@ -17,7 +17,6 @@ class SearchBooks:
     def test_data_list(self):
         if self.search_info_msg == 'OK':
             if self.search_info_data is not None:
-                self.get_seach_info()
                 return True
             else:
                 print('已下载完所有搜索的书籍')
@@ -27,6 +26,8 @@ class SearchBooks:
             return 404
 
     def get_seach_info(self):
+        if not self.test_data_list():
+            return 0
         for info_data in self.search_info_data:
             book_id = info_data.get('book_id')
             book_status = info_data.get('book_status')
