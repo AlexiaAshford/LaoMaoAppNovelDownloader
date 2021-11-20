@@ -1,8 +1,8 @@
 import fire
 import book
 from instance import *
-from function.Search import SearchBooks
-from API import LaoMaoxsAPI, Settings, HttpUtil, userlogin, UrlConstants
+from function import Search, userlogin
+from API import LaoMaoxsAPI, Settings, HttpUtil, UrlConstants
 
 class Shell(object):
     def id(self, bookid=None):
@@ -17,31 +17,28 @@ class Shell(object):
 
     def login(self, usernames=None, passwords=None):
         user_setting = False
-        if usernames != None and passwords != None:
-            if len(str(usernames)) <= 6:
-                print("账号不能小于6位!")
-                usernames, user_setting= None, False
-            if len(str(passwords)) <= 6:
-                print("密码不能小于6位!")
-                passwords. user_setting= None, False
-            else:
-                user_setting = True
-        if usernames is None:
+        # if usernames != None and passwords != None:
+        #     if len(str(usernames)) <= 6:
+        #         print("账号不能小于6位!")
+        #         usernames, user_setting = None, False
+        #     if len(str(passwords)) <= 6:
+        #         print("密码不能小于6位!")
+        #         passwords. user_setting = None, False
+        #     else:
+        #         user_setting = True
+        if usernames is None or len(str(usernames)) <= 6:
             usernames  = get('请输入usernames:').strip()
             while len(str(usernames)) <= 6:
                 print("账号不能小于6位!")
-                usernames  = get('请输入usernames:').strip()
-            else:
-                user_setting = True
-        if passwords is None:
+                usernames = get('请输入usernames:').strip()
+        if passwords is None or len(str(passwords)) <= 6:
             passwords  = get('请输入passwords:').strip()
             while len(str(passwords)) <= 6:
                 print("密码不能小于6位!")
                 passwords  = get('请输入passwords:').strip()
-            else:
-                user_setting = True
-        if user_setting or user_setting is True:
+        else:
             userlogin.Login(usernames, passwords).Login_account()
+        userlogin.Login(usernames, passwords).Login_account()
 
     def max(self, max_num=None):
         if max_num is None:
@@ -54,19 +51,18 @@ class Shell(object):
         else:
             print(max_num, "不是数字！")
 
+    
 
     def name(self, bookName=None):
         if bookName is None:
             bookName = get('请输入bookName:').strip()
         search_result_url_list = [
-            UrlConstants.SERCH_BOOK.format(bookName, i) for i in range(100)]
+            UrlConstants.SERCH_BOOK.format(bookName, i) for i in range(20)]
         
         for list_num, url in enumerate(search_result_url_list):
-            test_data = SearchBooks(url).test_data_list()
-            if test_data is True:
+            
+            if Search.SearchBooks(url).get_seach_info() != 0:
                 print(f'第{list_num}页下载完毕')
-            elif test_data == 404:
-                return '搜结果不存在这本书！'
             else:
                 return '已下载完所有搜索的书籍'
         #     search_bookid_list = Download.SearchBook(bookName)
