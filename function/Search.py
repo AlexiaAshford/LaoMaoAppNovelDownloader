@@ -17,17 +17,13 @@ class SearchBooks:
     def test_data_list(self):
         if self.search_info_msg == 'OK':
             if self.search_info_data is not None:
-                return True
+                return 200
             else:
-                print('已下载完所有搜索的书籍')
-                return False
+                return 0
         else:
-            print('搜结果不存在这本书！')
             return 404
 
     def get_seach_info(self):
-        if not self.test_data_list():
-            return 0
         for info_data in self.search_info_data:
             book_id = info_data.get('book_id')
             book_status = info_data.get('book_status')
@@ -36,8 +32,7 @@ class SearchBooks:
             chapter_count = info_data.get('chapter_count')
             book_hits = info_data.get('book_hits')
             self.book_id_list.append(book_id)
-            book.BOOK(
-                HttpUtil.get(UrlConstants.BOOK_INDEX.format(book_id))
+            book.BOOK(HttpUtil.get(UrlConstants.BOOK_INDEX.format(book_id))
             ).book_show()
 
         # if not self.search_info_data:
