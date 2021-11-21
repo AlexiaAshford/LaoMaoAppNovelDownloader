@@ -85,8 +85,7 @@ class Download:
                     os.path.join(self.save_dir, self.bookName,f"{number}.{book_title}.txt"),
                     'w',
                 )
-                response = HttpUtil.get(url)
-                content = content_(response.get('data'))
+                content = content_(HttpUtil.get(url).get('data'))
                 # print(content)
                 fd.write('\n\n\n{}\n{}'.format(book_title, content))
 
