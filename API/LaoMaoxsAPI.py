@@ -1,7 +1,6 @@
 from API import HttpUtil, UrlConstants
 from API.AesDecrypt import decrypt, example
 from instance import *
-import requests
 import threading
 # from rich.progress import DownloadColumn, TextColumn, Progress, BarColumn, TimeRemainingColumn
 
@@ -27,46 +26,17 @@ class Download:
                         f'{self.bookName}.txt'), 'a', config_file)
             else:
                 continue
-    def ranking(self):
-        ranking_list_bookid = []
-        for i in range(10000):
-            url = f'https://api.laomaoxs.com/novel/ranking?sex=2&page={i}&order=0'
-            if not HttpUtil.get(url)['data']:
-                print('分类已经下载完毕')
-                break
-            for data in HttpUtil.get(url)['data']:
-                self.bookName = data['book_title']
-                print(self.bookName)
-                ranking_list_bookid.append(data['book_id'])
-        return ranking_list_bookid
 
-    def ThreadPool(self, chapters_url_list, BOOK_INFO_LIST):
-        BOOK_INFO_LIST = BOOK_INFO_LIST[0]
-        self.bookid = BOOK_INFO_LIST.get('book_id')
-        self.bookName = BOOK_INFO_LIST.get('book_title')
-        self.novel_intro = BOOK_INFO_LIST.get('book_desc')
-        self.authorName = BOOK_INFO_LIST.get('book_author')
-        self.chapter_list = BOOK_INFO_LIST.get('chapter_list')
-        self.lastUpdateTime = BOOK_INFO_LIST.get('update_time')
-        self.book_type = BOOK_INFO_LIST.get('book_type')
-        self.isFinish = BOOK_INFO_LIST.get('book_status')
+    def ThreadPool(self, chapters_url_list, info_dict):
+        self.bookid = info_dict.get('book_id')
+        self.bookName = info_dict.get('book_title')
+        self.novel_intro = info_dict.get('book_desc')
+        self.authorName = info_dict.get('book_author')
+        self.chapter_list = info_dict.get('chapter_list')
+        self.lastUpdateTime = info_dict.get('update_time')
+        self.book_type = info_dict.get('book_type')
+        self.isFinish = info_dict.get('book_status')
         """多线程并发实现"""
-        # print('多进程', self.Read.get('Multithreading'))
-        # executor = ThreadPoolExecutor(max_workers=self.max_worker)
-        # task_list = []
-        # for number, book_url in enumerate(chapters_url_list):
-        #     task = partial(self.ThreadPool_download, book_url, number)
-        #     task_list.append(executor.submit(task))
-
-        # if task_list:
-        #     for chapter_num in range(len(task_list)):
-        #         time.sleep(0.1)
-        #         print(chapter_num +1, '/', len(task_list), end = "\r")
-
-        #     self.filedir()
-        #     print(f'\n小说 {self.bookName} 下载完成')
-        # else:
-        #     self.filedir()
 
         # 创建 rich 进度条
         lock_tasks_list = threading.Lock()
@@ -100,9 +70,7 @@ class Download:
         def downloader():
             """多线程下载函数"""
             nonlocal lock_tasks_list, lock_progress, tasks  # progress, prgtask
-
-            session = requests.Session()
-
+            
             while tasks:
                 lock_tasks_list.acquire()
                 url, number = tasks.pop()
@@ -114,18 +82,17 @@ class Download:
                 book_title = del_title(self.chapter_list[number-1])
                 # print(book_title)
                 fd = write(
-                    os.path.join(self.save_dir, self.bookName,
-                                 f"{number}.{book_title}.txt"),
+                    os.path.join(self.save_dir, self.bookName,f"{number}.{book_title}.txt"),
                     'w',
                 )
-                with session.get(url, headers=HttpUtil.headers) as response:
-                    content = example(decrypt(response.content)).get('data')
-                    fd.write('\n\n\n{}\n{}'.format(
-                        book_title, content_(content)))
+                response = HttpUtil.get(url)
+                content = content_(response.get('data'))
+                # print(content)
+                fd.write('\n\n\n{}\n{}'.format(book_title, content))
 
-                    lock_progress.acquire()
-                    # progress.update(prgtask, advance=1)
-                    lock_progress.release()
+                lock_progress.acquire()
+                # progress.update(prgtask, advance=1)
+                lock_progress.release()
 
         for _ in range(self.max_worker):
             th = threading.Thread(target=downloader)
