@@ -12,7 +12,7 @@ class Categorys(object):
 
     def test(self):
         if self.Categor_info.get('code') == 1:
-            if self.Categor_info is not None:
+            if self.Categor_info != []:
                 # print(self.Categor_data)
                 return 200
             else:

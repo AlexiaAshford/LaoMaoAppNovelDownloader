@@ -41,7 +41,7 @@ class Login:
         if register_msg == '该账号已存在！' or register_code == 0:
             print(register_msg, ',不在进行注册，请检查账号或密码是否正确')
             
-        elif register_data is not None:
+        elif register_data != []:
             user_id, nickname, user_token = (
                 register_data['user_id'], str(register_data['nickname']),
                 register_data['user_token']
