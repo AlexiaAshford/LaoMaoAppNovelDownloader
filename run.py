@@ -66,6 +66,7 @@ class Shell(object):
                 Search_.get_seach_info()
                 
             elif Search_.test_data_list() == 0:
+                print('已下载完所有搜索的书籍')
                 break
             elif Search_.test_data_list() == 404:
                 print('搜结果不存在这本书！')
