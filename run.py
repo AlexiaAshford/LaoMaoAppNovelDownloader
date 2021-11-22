@@ -5,7 +5,7 @@ from function import Search, userlogin, Category
 from API import LaoMaoxsAPI, Settings, HttpUtil, UrlConstants
 
 class Shell(object):
-    def id(self, bookid=None):
+    def bookid(self, bookid=None):
         if bookid is None:
             bookid = get('请输入Bookid:').strip()
         if str(bookid).isdigit():
@@ -64,9 +64,9 @@ class Shell(object):
             if Search_.test_data_list() == 200:
                 print(f'开始下载第{list_num}页')
                 Search_.get_seach_info()
+                
             elif Search_.test_data_list() == 0:
-                print('已下载完所有搜索的书籍')
-                return 
+                break
             elif Search_.test_data_list() == 404:
                 print('搜结果不存在这本书！')
         #     search_bookid_list = Download.SearchBook(bookName)
