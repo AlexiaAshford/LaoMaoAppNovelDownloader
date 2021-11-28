@@ -1,6 +1,6 @@
 import requests
 from lxml import etree
-import sys
+import urllib
 import re
 import os
 import zipfile
@@ -18,8 +18,21 @@ class Epub:
         with open(self.book_name + '/' + 'mimetype') as f:
             f.write('application/epub+zip')
 
-            
-            
+    def set_cover(self, url: str, png_name=None):
+        if png_name is None:
+            image_path = self.tempdir + '/OEBPS/Images/cover.jpg'
+        else:
+            image_path = self.tempdir + '/OEBPS/Images/' + png_name
+        if os.path.exists(image_path):
+            if os.path.getsize(image_path) != 0:
+                return
+        for retry in range(10):
+            try:
+                urllib.request.urlretrieve(url, image_path)
+                return
+            except OSError as e:
+                print('下载封面图片失败')
+
             
             
             
@@ -35,8 +48,8 @@ class Epub:
         for line in content_line:
             chaptrt_content += f"<p>{line}</p>\r\n"
         chaptrt_content += "\r\n</body>\r\n</html>"
-        file_chapter_name = str(self.number).rjust(4, "0") + '-' + f'{self.chapter_title}.txt'
-        path = os.path.join(self.book_name, 'OEBPS', 'Text', file_chapter_name)
+        self.file_chapter_name = str(self.number).rjust(4, "0") + '-' + f'{self.chapter_title}'
+        path = os.path.join(self.book_name, 'OEBPS', 'Text', self.file_chapter_name + '.xhtml')
         
         with open(path, 'w', encoding='utf-8') as file:
             file.write(chaptrt_content)
@@ -91,3 +104,32 @@ class Epub:
         container_infp += '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">\r\n'
         container_infp += '<rootfiles>\r\n<rootfile media-type="application/oebps-package+xml" full-path="EPUB/content.opf"/>'
         container_infp += '</rootfiles>\r\n</container>'
+
+
+
+
+
+def FunctionName(args):
+    
+    """
+<?xml version='1.0' encoding='utf-8'?>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+  <head>
+    <meta content="707121" name="dtb:uid"/>
+    <meta content="0" name="dtb:depth"/>
+    <meta content="0" name="dtb:totalPageCount"/>
+    <meta content="0" name="dtb:maxPageNumber"/>
+  </head>
+  <docTitle>
+    <text>《勇者千金不想工作！！！》卷一 海港都市柯斯特篇</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="{self.file_chapter_name}">
+      <navLabel>
+        <text>{self.chapter_title}</text>
+      </navLabel>
+      <content src="{self.file_chapter_name}.xhtml"/>
+    </navPoint>
+  </navMap>
+</ncx>
+"""
