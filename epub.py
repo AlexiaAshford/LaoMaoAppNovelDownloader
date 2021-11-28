@@ -72,3 +72,13 @@ class Epub:
         intro_cover += '<svg xmlns="http://www.w3.org/2000/svg" height="100%" preserveAspectRatio="xMidYMid meet" version="1.1" viewBox="0 0 179 248" width="100%" xmlns:xlink="http://www.w3.org/1999/xlink">'
         intro_cover += '<image height="248" width="179" xlink:href="../Images/cover.jpg"></image>\r\n</svg>\r\n'
         intro_cover += '</div>\r\n</body>\r\n</html>'
+        text = f'<h1>书名:{self.bookName}</h1>\r\n' + \
+            f'<h3>序号:{self.bookid}</h3>\r\n' + \
+            f'<h3>作者:{self.authorName}</h3>\r\n' + \
+            f'<h3>更新:{self.lastUpdateTime}</h3>\r\n' + \
+            f'<h3>标签:{self.tag}</h3>\r\n' + \
+            f'<h3>简介:{self.intro}</h3>'
+        text = re.sub('</body>\r\n</html>', text + '\r\n</body>\r\n</html>', intro_cover)
+        with open('/OEBPS/Text/cover.xhtml', 'w', encoding='utf-8') as f:
+            f.write(text)
+
