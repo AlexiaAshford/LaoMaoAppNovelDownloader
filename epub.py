@@ -42,25 +42,20 @@ class Epub:
             file.write(chaptrt_content)
             
             
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
-            
+    def style_flie(args):
+        nav_css = ''
+        nav_css += 'body {font-family: Auto;}\r\n'
+        nav_css += 'p{font-family: Auto;\r\ntext-indent: 2em;}\r\n'
+        nav_css += 'h2 {text-align: left;\r\ntext-transform: uppercase;\r\nfont-weight: 200;}\r\n'
+        nav_css += 'ol {list-style-type: none;}\r\n'
+        nav_css += 'ol > li:first-child {margin-top: 0.3em;}\r\n'
+        nav_css += "nav[epub|type~='toc'] > ol > li > ol  {list-style-type:square;}\r\n"
+        nav_css += "nav[epub|type~='toc'] > ol > li > ol > li {margin-top: 0.3em;}\r\n"
+        
+        default_css = ''
+        default_css += "body {font-size:100%;}\r\n"
+        default_css += "p{font-family: Auto;\r\ntext-indent: 2em;}\r\n"
+        default_css += "h1{font-style: normal;\r\nfont-size: 20px;\r\nfont-family: Auto;}\r\n"
             
             
     def create_content(self):
