@@ -82,3 +82,12 @@ class Epub:
         with open('/OEBPS/Text/cover.xhtml', 'w', encoding='utf-8') as f:
             f.write(text)
 
+
+
+    def create_container(self):
+        """bookname/META-INF/container.xml"""
+        container_infp = ''
+        container_infp += "<?xml version='1.0' encoding='utf-8'?>\r\n"
+        container_infp += '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">\r\n'
+        container_infp += '<rootfiles>\r\n<rootfile media-type="application/oebps-package+xml" full-path="EPUB/content.opf"/>'
+        container_infp += '</rootfiles>\r\n</container>'
