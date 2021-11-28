@@ -1,19 +1,25 @@
 import requests
-from lxml import etree
+from instance import *
 import urllib
 import re
 import os
 import zipfile
 import shutil
 
+
+
+Vars.cfg.load()    
+
 class Epub:
     
     def __init__(self):
-        self.book_name = None
+        self.book_name = "大师姐弃疗了"
         self.chapter_title = None
         self.intro = None
         self.authorName = None
         self.content = None
+        
+        
     def create_mimetype(self):
         with open(self.book_name + '/' + 'mimetype') as f:
             f.write('application/epub+zip')
@@ -75,7 +81,9 @@ class Epub:
         default_css += "h1{font-style: normal;\r\nfont-size: 20px;\r\nfont-family: Auto;}\r\n"
             
             
-    def create_info(self,epub,path,index,rollSign):
+    def create_info(self):
+        path_cover = os.path.join(Vars.cfg.data.get('output_dir'), self.book_name, "OEBPS", "Text")
+        os.makedirs(path_cover)
         intro_cover = ''
         intro_cover += "<?xml version='1.0' encoding='utf-8'?>\r\n<!DOCTYPE html>"
         intro_cover += '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" lang="zh-CN" xml:lang="zh-CN">'
@@ -85,15 +93,14 @@ class Epub:
         intro_cover += '<svg xmlns="http://www.w3.org/2000/svg" height="100%" preserveAspectRatio="xMidYMid meet" version="1.1" viewBox="0 0 179 248" width="100%" xmlns:xlink="http://www.w3.org/1999/xlink">'
         intro_cover += '<image height="248" width="179" xlink:href="../Images/cover.jpg"></image>\r\n</svg>\r\n'
         intro_cover += '</div>\r\n</body>\r\n</html>'
-        text = f'<h1>书名:{self.bookName}</h1>\r\n' + \
+        text = f'<h1>书名:{self.book_name}</h1>\r\n' + \
             f'<h3>序号:{self.bookid}</h3>\r\n' + \
             f'<h3>作者:{self.authorName}</h3>\r\n' + \
             f'<h3>更新:{self.lastUpdateTime}</h3>\r\n' + \
             f'<h3>标签:{self.tag}</h3>\r\n' + \
             f'<h3>简介:{self.intro}</h3>'
         text = re.sub('</body>\r\n</html>', text + '\r\n</body>\r\n</html>', intro_cover)
-        with open('/OEBPS/Text/cover.xhtml', 'w', encoding='utf-8') as f:
-            f.write(text)
+        write(path_cover + '/' +  'cover.xhtml', 'w', text)
 
 
 
@@ -109,27 +116,29 @@ class Epub:
 
 
 
-def FunctionName(args):
-    
+    def FunctionName(args):
+        
+        """
+    <?xml version='1.0' encoding='utf-8'?>
+    <ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
+      <head>
+        <meta content="707121" name="dtb:uid"/>
+        <meta content="0" name="dtb:depth"/>
+        <meta content="0" name="dtb:totalPageCount"/>
+        <meta content="0" name="dtb:maxPageNumber"/>
+      </head>
+      <docTitle>
+        <text>《勇者千金不想工作！！！》卷一 海港都市柯斯特篇</text>
+      </docTitle>
+      <navMap>
+        <navPoint id="{self.file_chapter_name}">
+          <navLabel>
+            <text>{self.chapter_title}</text>
+          </navLabel>
+          <content src="{self.file_chapter_name}.xhtml"/>
+        </navPoint>
+      </navMap>
+    </ncx>
     """
-<?xml version='1.0' encoding='utf-8'?>
-<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1">
-  <head>
-    <meta content="707121" name="dtb:uid"/>
-    <meta content="0" name="dtb:depth"/>
-    <meta content="0" name="dtb:totalPageCount"/>
-    <meta content="0" name="dtb:maxPageNumber"/>
-  </head>
-  <docTitle>
-    <text>《勇者千金不想工作！！！》卷一 海港都市柯斯特篇</text>
-  </docTitle>
-  <navMap>
-    <navPoint id="{self.file_chapter_name}">
-      <navLabel>
-        <text>{self.chapter_title}</text>
-      </navLabel>
-      <content src="{self.file_chapter_name}.xhtml"/>
-    </navPoint>
-  </navMap>
-</ncx>
-"""
+    
+Epub().create_info()
