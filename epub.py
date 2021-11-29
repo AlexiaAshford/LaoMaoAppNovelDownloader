@@ -215,6 +215,16 @@ class Epub:
         if not os.path.exists(nav_file_path):
             write(nav_file_path, 'w', nav)
 
+    def add_nav(self, file_chapter_name):
+        nav_file_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS", 'nav.xhtml')
+        nav_file = write(os.path.join(nav_file_path), 'r').read()
+        # print(nav_file)
+        add_nav = nav_file.replace('${file_chapter_name}', file_chapter_name).replace('${chapter_title}', self.chapter_title)
+        add_nav = add_nav.replace(
+            '</li>', '\r\n<a href="${file_chapter_name}.xhtml">${chapter_title}</a>\r\n'+ '</li>')
+        write(nav_file, 'w', add_nav)
+        
+        
 if __name__ == '__main__':
     Epubs = Epub('大师姐', '43534534', '可乐', '百合', '这是一个简介', '2021年')
     Epubs.create_info()
