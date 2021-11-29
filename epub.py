@@ -111,7 +111,7 @@ class Epub:
         container_infp = ''
         container_infp += "<?xml version='1.0' encoding='utf-8'?>\r\n"
         container_infp += '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">\r\n'
-        container_infp += '<rootfiles>\r\n<rootfile media-type="application/oebps-package+xml" full-path="EPUB/content.opf"/>'
+        container_infp += '<rootfiles>\r\n<rootfile media-type="application/oebps-package+xml" full-path="OEBPS/content.opf"/>'
         container_infp += '</rootfiles>\r\n</container>'
         container_flie_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, 'META-INF')
         if not os.path.exists(container_flie_path):
@@ -150,6 +150,38 @@ class Epub:
         chapter_nav += '<content src="${file_chapter_name}.xhtml"/>\r\n</navPoint>\r\n'
         add_toc = add_toc.replace('</navMap>', chapter_nav + '\r\n</navMap>')
         write(toc_file_path, 'w', add_toc)
+        
+        
+
+
+    def create_content_opf(self):
+        content_opf = "<?xml version='1.0' encoding='utf-8'?>\r\n"
+        content_opf = '<package xmlns="http://www.idpf.org/2007/opf" unique-identifier="id" version="3.0" prefix="rendition: http://www.idpf.org/vocab/rendition/#">\r\n'
+        content_opf += '<metadata xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:opf="http://www.idpf.org/2007/opf">\r\n'
+        content_opf += '<meta property="dcterms:modified">{self.lastUpdateTime}</meta>\r\n'
+        content_opf += '<dc:identifier id="id">{self.bookid}</dc:identifier>\r\n'
+        content_opf += '<dc:title>{self.book_name}</dc:title>\r\n'
+        content_opf += '<dc:language>zh-CN</dc:language>\r\n'
+        content_opf += '<dc:creator id="creator">{self.author_name}</dc:creator>\r\n'
+        content_opf += '<meta name="generator" content="Ebook-lib 0.17.1"/>\r\n'
+        content_opf += '<meta name="cover" content="cover-img"/>\r\n'
+        content_opf += '</metadata>\r\n<manifest>\r\n'
+        
+        content_opf_href = '<item href="image/cover.png" id="cover-img" media-type="image/png" properties="cover-image"/>
+        content_opf_href += '<item href="Text/cover.xhtml" id="cover" media-type="application/x-dtbncx+xml"/>
+        content_opf_href += '<item href="style/default.css" id="style_default" media-type="text/css"/>
+        content_opf_href += '<item href="style/nav.css" id="style_nav" media-type="text/css"/>
+        content_opf_href += '<item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+        content_opf_href += '<item href="nav.xhtml" id="nav" media-type="application/xhtml+xml" properties="nav"/>
+        content_opf_href += '<item href="$Text/{file_chapter_name}.xhtml" id="${file_chapter_name}" media-type="application/xhtml+xml"/>
+        
+        content_opf_href += '</manifest>\r\n'
+        content_opf_href += '<spine toc="ncx">\r\n'
+        content_opf_href += '<itemref idref="nav"/>\r\n'
+        content_opf_href += '<itemref idref="chapter_0"/>\r\n'
+        content_opf_href += '</spine>\r\n</package>\r\n'
+
+        
     
 Epub().create_info()
 Epub().style_flie()
