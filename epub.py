@@ -7,11 +7,11 @@ import zipfile
 import shutil
 
 
+Vars.cfg.load()
 
-Vars.cfg.load()    
 
 class Epub:
-    
+
     def __init__(self, book_name, book_id, author_name, tag_name, book_description, lastUpdateTime):
         self.book_name = book_name
         self.bookid = book_id
@@ -19,9 +19,10 @@ class Epub:
         self.author_name = author_name
         self.tag_name = tag_name
         self.lastUpdateTime = lastUpdateTime
-        
+
     def create_mimetype(self):
-        write(os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, 'mimetype'), 'w', 'application/epub+zip')
+        write(os.path.join(Vars.cfg.data.get('save_dir'),
+              self.book_name, 'mimetype'), 'w', 'application/epub+zip')
 
     def set_cover(self, url: str, png_name=None):
         if png_name is None:
@@ -38,10 +39,8 @@ class Epub:
             except OSError as e:
                 print('下载封面图片失败')
 
-
-
     def create_content(self):
-        chaptrt_content = ''           
+        chaptrt_content = ''
         chaptrt_content += "<?xml version='1.0' encoding='utf-8'?>\r\n"
         chaptrt_content += '<!DOCTYPE html>\r\n'
         chaptrt_content += '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" epub:prefix="z3998: http://www.daisy.org/z3998/2012/vocab/structure/#" lang="zh-CN" xml:lang="zh-CN">\r\n'
@@ -52,15 +51,17 @@ class Epub:
         for line in content_line:
             chaptrt_content += f"<p>{line}</p>\r\n"
         chaptrt_content += "\r\n</body>\r\n</html>"
-        self.file_chapter_name = str(self.number).rjust(4, "0") + '-' + f'{self.chapter_title}'
-        path = os.path.join(self.book_name, 'OEBPS', 'Text', self.file_chapter_name + '.xhtml')
-        
+        self.file_chapter_name = str(self.number).rjust(
+            4, "0") + '-' + f'{self.chapter_title}'
+        path = os.path.join(self.book_name, 'OEBPS', 'Text',
+                            self.file_chapter_name + '.xhtml')
+
         with open(path, 'w', encoding='utf-8') as file:
             file.write(chaptrt_content)
-            
-            
+
     def style_flie(self):
-        style_flie_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, 'OEBPS', 'style')
+        style_flie_path = os.path.join(Vars.cfg.data.get(
+            'save_dir'), self.book_name, 'OEBPS', 'style')
         if not os.path.exists(style_flie_path):
             os.mkdir(style_flie_path)
         """book_name/OEBPS/style/nav.css"""
@@ -74,16 +75,16 @@ class Epub:
         nav_css += "nav[epub|type~='toc'] > ol > li > ol > li {margin-top: 0.3em;}\r\n"
         write(os.path.join(style_flie_path, 'nav.css'), 'w', nav_css)
 
-        
         """book_name/OEBPS/style/default.css"""
         default_css = ''
         default_css += "body {font-size:100%;}\r\n"
         default_css += "p{font-family: Auto;\r\ntext-indent: 2em;}\r\n"
         default_css += "h1{font-style: normal;\r\nfont-size: 20px;\r\nfont-family: Auto;}\r\n"
         write(os.path.join(style_flie_path, 'default.css'), 'w', default_css)
-            
+
     def create_info(self):
-        path_cover = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS", "Text")
+        path_cover = os.path.join(Vars.cfg.data.get(
+            'save_dir'), self.book_name, "OEBPS", "Text")
         if not os.path.exists(path_cover):
             os.makedirs(path_cover)
         intro_cover = ''
@@ -97,14 +98,13 @@ class Epub:
         intro_cover += '</div>\r\n</body>\r\n</html>'
         text = f'<h1>书名:{self.book_name}</h1>\r\n' + \
             f'<h3>序号:{self.bookid}</h3>\r\n' + \
-            f'<h3>作者:{self.authorName}</h3>\r\n' + \
+            f'<h3>作者:{self.author_name}</h3>\r\n' + \
             f'<h3>更新:{self.lastUpdateTime}</h3>\r\n' + \
             f'<h3>标签:{self.tag_name}</h3>\r\n' + \
             f'<h3>简介:{self.book_description}</h3>'
-        text = re.sub('</body>\r\n</html>', text + '\r\n</body>\r\n</html>', intro_cover)
+        text = re.sub('</body>\r\n</html>', text +
+                      '\r\n</body>\r\n</html>', intro_cover)
         write(os.path.join(path_cover, 'cover.xhtml'), 'w', text)
-
-
 
     def create_container(self):
         """bookname/META-INF/container.xml"""
@@ -113,10 +113,12 @@ class Epub:
         container_infp += '<container xmlns="urn:oasis:names:tc:opendocument:xmlns:container" version="1.0">\r\n'
         container_infp += '<rootfiles>\r\n<rootfile media-type="application/oebps-package+xml" full-path="OEBPS/content.opf"/>'
         container_infp += '</rootfiles>\r\n</container>'
-        container_flie_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, 'META-INF')
+        container_flie_path = os.path.join(
+            Vars.cfg.data.get('save_dir'), self.book_name, 'META-INF')
         if not os.path.exists(container_flie_path):
             os.mkdir(container_flie_path)
-            write(os.path.join(container_flie_path, 'container.xml'), 'w', container_infp)
+            write(os.path.join(container_flie_path,
+                  'container.xml'), 'w', container_infp)
 
     def create_toc(self):
         nav = ""
@@ -134,14 +136,16 @@ class Epub:
         chapter_nav += '<text>${chapter_title}</text>\r\n</navLabel>\r\n'
         chapter_nav += '<content src="${file_chapter_name}.xhtml"/>\r\n</navPoint>\r\n'
         nav += chapter_nav + '</navMap>\r\n</ncx>'
-        toc_file_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS")
+        toc_file_path = os.path.join(Vars.cfg.data.get(
+            'save_dir'), self.book_name, "OEBPS")
         if not os.path.exists(os.path.join(toc_file_path, 'toc.ncxl')):
             write(os.path.join(toc_file_path, 'toc.ncxl'), 'a', nav)
-    
+
     def add_toc(self, Volume, title, file_chapter_name):
-        toc_file_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS", 'toc.ncxl')
+        toc_file_path = os.path.join(Vars.cfg.data.get(
+            'save_dir'), self.book_name, "OEBPS", 'toc.ncxl')
         toc_file = write(os.path.join(toc_file_path), 'r').read()
-        print(toc_file)
+        # print(toc_file)
         add_toc = toc_file.replace('${Volume_name}', Volume)
         add_toc = add_toc.replace('${chapter_title}', title)
         add_toc = add_toc.replace('${file_chapter_name}', file_chapter_name)
@@ -150,9 +154,6 @@ class Epub:
         chapter_nav += '<content src="${file_chapter_name}.xhtml"/>\r\n</navPoint>\r\n'
         add_toc = add_toc.replace('</navMap>', chapter_nav + '\r\n</navMap>')
         write(toc_file_path, 'w', add_toc)
-        
-        
-
 
     def create_content_opf(self):
         content_opf = "<?xml version='1.0' encoding='utf-8'?>\r\n"
@@ -166,26 +167,61 @@ class Epub:
         content_opf += '<meta name="generator" content="Ebook-lib 0.17.1"/>\r\n'
         content_opf += '<meta name="cover" content="cover-img"/>\r\n'
         content_opf += '</metadata>\r\n<manifest>\r\n'
-        
-        content_opf_href = '<item href="image/cover.png" id="cover-img" media-type="image/png" properties="cover-image"/>
-        content_opf_href += '<item href="Text/cover.xhtml" id="cover" media-type="application/x-dtbncx+xml"/>
-        content_opf_href += '<item href="style/default.css" id="style_default" media-type="text/css"/>
-        content_opf_href += '<item href="style/nav.css" id="style_nav" media-type="text/css"/>
-        content_opf_href += '<item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
-        content_opf_href += '<item href="nav.xhtml" id="nav" media-type="application/xhtml+xml" properties="nav"/>
-        content_opf_href += '<item href="$Text/{file_chapter_name}.xhtml" id="${file_chapter_name}" media-type="application/xhtml+xml"/>
-        
+
+        content_opf_href = '<item href="image/cover.png" id="cover-img" media-type="image/png" properties="cover-image"/>\r\n'
+        content_opf_href += '<item href="Text/cover.xhtml" id="cover" media-type="application/x-dtbncx+xml"/>\r\n'
+        content_opf_href += '<item href="style/default.css" id="style_default" media-type="text/css"/>\r\n'
+        content_opf_href += '<item href="style/nav.css" id="style_nav" media-type="text/css"/>\r\n'
+        content_opf_href += '<item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>\r\n'
+        content_opf_href += '<item href="nav.xhtml" id="nav" media-type="application/xhtml+xml" properties="nav"/>\r\n'
+
+        content_opf_href += '<item href="Text/${file_chapter_name}.xhtml" id="${file_chapter_name}" media-type="application/xhtml+xml"/>\r\n'
+
         content_opf_href += '</manifest>\r\n'
         content_opf_href += '<spine toc="ncx">\r\n'
         content_opf_href += '<itemref idref="nav"/>\r\n'
-        content_opf_href += '<itemref idref="chapter_0"/>\r\n'
+        content_opf_href += '<itemref idref="$id{file_chapter_name}"/>\r\n'
         content_opf_href += '</spine>\r\n</package>\r\n'
+        opf_file_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS", 'content.opf')
+        if not os.path.exists(opf_file_path):
+            write(opf_file_path, 'w', content_opf + content_opf_href)
 
-        
-    
-Epub().create_info()
-Epub().style_flie()
-Epub().create_container()
-Epub().create_mimetype()
-Epub().create_toc()
-Epub().add_toc('这是卷', '这是章节', '这是路径')
+    def add_content_opf(self, file_chapter_name):
+        opf_file_path = os.path.join(Vars.cfg.data.get(
+            'save_dir'), self.book_name, "OEBPS", 'content.opf')
+        opf_file = write(os.path.join(opf_file_path), 'r').read()
+        print(opf_file)
+        add_opf = opf_file.replace('${file_chapter_name}', file_chapter_name)
+        add_opf = add_opf.replace(
+            '</manifest>', '<item href="Text/${file_chapter_name}.xhtml" id="${file_chapter_name}" media-type="application/xhtml+xml"/>\r\n</manifest>')
+        add_opf = add_opf.replace('$id{file_chapter_name}', file_chapter_name)
+        add_opf = add_opf.replace(
+            '</spine>', '<itemref idref="$id{file_chapter_name}"/>\r\n</spine>')
+        write(opf_file_path, 'w', add_opf)
+
+    def create_nav(self):
+        nav = "<?xml version='1.0' encoding='utf-8'?>"
+        nav += '<!DOCTYPE html>'
+        nav += '<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" lang="zh-CN" xml:lang="zh-CN">\r\n'
+        nav += '<head>\r\n'
+        nav += '<title>{self.book_name}</title>\r\n'
+        nav += '</head>\r\n<body>\r\n'
+        nav += '<nav epub:type="toc" id="id" role="doc-toc">\r\n'
+        nav += '<h2>{self.book_name}</h2>\r\n'
+        nav += '<ol>\r\n<li>\r\n'
+        nav += '<a href="${file_chapter_name}.xhtml">${chapter_title}</a>\r\n'
+        nav += '</li>\r\n</ol>\r\n</nav>\r\n</body>\r\n</html>\r\n'
+        nav_file_path = os.path.join(Vars.cfg.data.get('save_dir'), self.book_name, "OEBPS", 'nav.xhtml')
+        if not os.path.exists(nav_file_path):
+            write(nav_file_path, 'w', nav)
+
+if __name__ == '__main__':
+    Epubs = Epub('大师姐', '43534534', '可乐', '百合', '这是一个简介', '2021年')
+    Epubs.create_info()
+    Epubs.style_flie()
+    Epubs.create_container()
+    Epubs.create_mimetype()
+    Epubs.create_toc()
+    Epubs.add_toc('这是卷', '这是章节', '这是路径')
+    Epubs.create_nav()
+    Epubs.create_content_opf()
