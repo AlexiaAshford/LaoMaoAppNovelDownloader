@@ -1,5 +1,6 @@
 # LaoMaoAppNovelDownloader
 ## 老猫小说APP爬虫 
+## 爬虫失效，老猫小说已经关站
 
 ### 关于仓库
 <li>这是重构的老猫小说项目，可以理解成2.0版本</li>
